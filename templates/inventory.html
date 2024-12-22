@@ -1,0 +1,232 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h1>Inventario</h1>
+
+<!-- Barra de búsqueda con tarjeta -->
+<div class="row">
+    <div class="col-md-8">
+        <div class="lg:col-span-2">
+            <div class="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+                <div class="relative mb-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.3-4.3"></path>
+                    </svg>
+                    <input type="text" id="search-bar" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm pl-10" placeholder="Buscar productos..." onkeyup="searchProducts()" />
+                </div>
+
+                <!-- Productos (Inicialmente ocultos) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" id="products-list" style="display: none;">
+                    {% for product in products %}
+                    <div class="rounded-lg border bg-card text-card-foreground shadow-sm p-4 hover:shadow-md transition-shadow cursor-pointer product-card" data-name="{{ product.nombre }}" data-category="{{ product.categoria }}">
+
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-medium">{{ product.nombre }}</h3>
+                                <p class="text-sm text-gray-600">{{ product.categoria }}</p>
+                                <p class="text-lg font-bold mt-2">S/.{{ "%.2f"|format(product.precio) }}</p>
+                            </div>
+                            <button class="inline-flex items-center justify-center gap-2 add-to-cart text-sm font-medium h-9 rounded-md px-3" data-id="{{ product.id }}" data-name="{{ product.nombre }}" data-price="{{ product.precio }}">
+
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shopping-cart w-4 h-4">
+                                    <circle cx="8" cy="21" r="1"></circle>
+                                    <circle cx="19" cy="21" r="1"></circle>
+                                    <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Carrito de compras (A la derecha, al lado de los productos) -->
+    <div class="col-md-4">
+        <div class="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+            <h2 class="text-xl font-semibold mb-4">Carrito</h2>
+            <div id="cart-summary" class="space-y-4">
+                <!-- Aquí se agregarán los productos del carrito dinámicamente -->
+            </div>
+            <div class="border-t pt-4">
+                <div class="flex justify-between items-center text-lg font-bold">
+                    <span>Total</span>
+                    <span id="total-price">S/. 0.00</span>
+                </div>
+                <button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full mt-4" data-bs-toggle="modal" data-bs-target="#customerModal">
+                    Completar Venta
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para formulario de cliente -->
+<div class="modal fade" id="customerModal" tabindex="-1" aria-labelledby="customerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="customerModalLabel">Datos del Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="sale-form">
+                    <div class="mb-3">
+                        <label for="customer-name" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="customer-name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="customer-email" class="form-label">Correo electrónico</label>
+                        <input type="email" class="form-control" id="customer-email" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Confirmar Venta</button>
+                </form>
+                <h3 class="mt-4">Historial de Ventas:</h3>
+                <ul id="sales-history">
+                    <!-- Aquí se agregarán las ventas realizadas -->
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Variables para manejar el carrito y el historial de ventas
+let cart = {};
+let totalPrice = 0;
+let salesHistory = [];
+
+// Función para filtrar productos por búsqueda
+function searchProducts() {
+    const searchText = document.getElementById('search-bar').value.toLowerCase();
+    const products = document.querySelectorAll('.product-card');
+    let foundProducts = false;
+
+    products.forEach(product => {
+        const name = product.dataset.name.toLowerCase();
+        const category = product.dataset.category.toLowerCase();
+
+        if (name.includes(searchText) || category.includes(searchText)) {
+            product.style.display = "block";  // Mostrar producto
+            foundProducts = true;
+        } else {
+            product.style.display = "none";  // Ocultar producto
+        }
+    });
+
+    // Si no se encuentran productos, mostrar el mensaje
+    if (foundProducts) {
+        document.getElementById('products-list').style.display = "block";
+    } else {
+        document.getElementById('products-list').style.display = "none";
+    }
+}
+
+// Función para agregar productos al carrito
+document.querySelectorAll('.add-to-cart').forEach(button => {
+    button.addEventListener('click', (e) => {
+        const productId = e.target.dataset.id;
+        const productName = e.target.dataset.name;
+        const productPrice = parseFloat(e.target.dataset.price);
+
+        // Si el producto ya está en el carrito, aumentar cantidad
+        if (cart[productId]) {
+            cart[productId].qty += 1;
+        } else {
+            cart[productId] = { name: productName, price: productPrice, qty: 1 };
+        }
+
+        // Actualizar carrito en el resumen
+        updateCart();
+    });
+});
+
+// Función para actualizar la cantidad del carrito directamente desde el input
+function updateQty(productId, value) {
+    const newQty = Math.max(1, value);  // Asegurarse de que la cantidad no sea menor a 1
+    cart[productId].qty = newQty;
+    updateCart();
+}
+
+// Función para eliminar un producto del carrito
+function removeProduct(productId) {
+    delete cart[productId];
+    updateCart();
+}
+
+// Función para actualizar el carrito
+function updateCart() {
+    const cartSummary = document.getElementById('cart-summary');
+    cartSummary.innerHTML = "";  // Limpiar resumen del carrito
+    totalPrice = 0;
+
+    Object.keys(cart).forEach(productId => {
+        const product = cart[productId];
+        totalPrice += product.price * product.qty;
+
+        cartSummary.innerHTML += `
+            <div class="border-b pb-4">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="font-medium">${product.name}</p>
+                        <div class="text-sm text-gray-600">Cantidad:
+                            <input type="number" value="${product.qty}" min="1" onchange="updateQty('${productId}', this.value)" class="w-12 text-center">
+                        </div>
+                    </div>
+                    <button onclick="removeProduct('${productId}')">Eliminar</button>
+                </div>
+            </div>
+        `;
+    });
+
+    // Actualizar precio total
+    document.getElementById('total-price').textContent = totalPrice.toFixed(2);
+}
+
+// Enviar formulario de venta
+document.getElementById('sale-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    // Obtener los datos del cliente
+    const customerName = document.getElementById('customer-name').value;
+    const customerEmail = document.getElementById('customer-email').value;
+    const saleDate = new Date().toLocaleDateString();
+
+    // Guardar venta en el historial
+    salesHistory.push({
+        customer: customerName,
+        email: customerEmail,
+        items: cart,
+        total: totalPrice.toFixed(2),
+        date: saleDate
+    });
+
+    // Actualizar el historial de ventas
+    updateSalesHistory();
+
+    // Limpiar carrito y cerrar modal
+    cart = {};
+    updateCart();
+    $('#customerModal').modal('hide');
+    alert("Venta completada. Gracias por tu compra.");
+});
+
+// Función para actualizar el historial de ventas en el modal
+function updateSalesHistory() {
+    const salesHistoryList = document.getElementById('sales-history');
+    salesHistoryList.innerHTML = "";  // Limpiar historial de ventas
+
+    salesHistory.forEach(sale => {
+        salesHistoryList.innerHTML += `
+            <li>
+                <strong>Fecha:</strong> ${sale.date} | 
+                <strong>Cliente:</strong> ${sale.customer} | 
+                <strong>Total:</strong> S/.${sale.total}
+            </li>
+        `;
+    });
+}
+</script>
+{% endblock %}

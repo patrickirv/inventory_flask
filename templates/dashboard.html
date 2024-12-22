@@ -1,0 +1,115 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h1 class="my-4">Dashboard</h1>
+        <div class="row">
+            <!-- Total Products -->
+            <div class="col-12 col-md-6 col-lg-3 mb-4">
+                <div class="card border-light shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="p-3 bg-blue-100 rounded-circle">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-primary">
+                                    <path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"></path>
+                                    <path d="M12 22V12"></path>
+                                    <path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"></path>
+                                    <path d="m7.5 4.27 9 5.15"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Total Productos</p>
+                                <p class="text-2xl font-bold text-gray-900">{{ total_products }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Low Stock Items -->
+            <div class="col-12 col-md-6 col-lg-3 mb-4">
+                <div class="card border-light shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="p-3 bg-red-100 rounded-circle">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-danger">
+                                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path>
+                                    <path d="M12 9v4"></path>
+                                    <path d="M12 17h.01"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Low Stock Items</p>
+                                <p class="text-2xl font-bold text-gray-900">{{ low_stock_items }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Category -->
+            <div class="col-12 col-md-6 col-lg-3 mb-4">
+                <div class="card border-light shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="p-3 bg-green-100 rounded-circle">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-success">
+                                    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+                                    <polyline points="16 7 22 7 22 13"></polyline>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Top Categoria</p>
+                                <p class="text-2xl font-bold text-gray-900">{{ top_category }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Sales -->
+            <div class="col-12 col-md-6 col-lg-3 mb-4">
+                <div class="card border-light shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="p-3 bg-purple-100 rounded-circle">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-purple">
+                                    <line x1="12" x2="12" y1="2" y2="22"></line>
+                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Total Ventas/Productos</p>
+                                <p class="text-2xl font-bold text-gray-900">{{ total_sales }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+<!-- Low Stock Critical Alerts -->
+<div class="col-12 col-md-6 col-lg-4 mb-4">
+    <div class="card border-light shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">Alertas de stock bajo</h5>
+            <div class="space-y-4">
+                {% for product, quantity in critical_stock_items %}
+                    <div class="low-stock-item p-4 bg-red-50 rounded-lg mb-2">
+                        <div class="product-info">
+                            <p class="font-medium text-gray-900">{{ product }}</p>
+                            <p class="text-sm text-gray-600">Solo quedan {{ quantity }} unidades</p>
+                        </div>
+                        <span class="critical-badge">Crítico</span>  <!-- Ahora 'Crítico' está aquí a la derecha -->
+                    </div>
+                {% else %}
+                    <p class="text-sm text-gray-600">No products with critical low stock</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    </div>
+{% endblock %}

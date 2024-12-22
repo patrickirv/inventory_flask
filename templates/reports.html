@@ -1,0 +1,95 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h1>Reportes</h1>
+
+<h2>Alerta de Stock Bajo</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Cantidad</th>
+            <th>Categoría</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for product in low_stock %}
+        <tr>
+            <td>{{ product.id }}</td>
+            <td>{{ product.nombre }}</td>
+            <td>{{ product.cantidad }}</td>
+            <td>{{ product.categoria }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2>Categoría Más Vendida</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Categoría</th>
+            <th>Total de Ventas</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>{{ top_category.category }}</td>
+            <td>{{ top_category.total_sales }}</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>Historial de Ventas</h2>
+
+<form method="POST">
+    <label for="period_select">Seleccionar Periodo:</label>
+    <select name="period" id="period_select">
+        <option value="today" {% if request.form.get('period') == 'today' %}selected{% endif %}>Hoy</option>
+        <option value="month" {% if request.form.get('period') == 'month' %}selected{% endif %}>Mes</option>
+        <option value="3months" {% if request.form.get('period') == '3months' %}selected{% endif %}>3 Meses</option>
+        <option value="6months" {% if request.form.get('period') == '6months' %}selected{% endif %}>6 Meses</option>
+        <option value="year" {% if request.form.get('period') == 'year' %}selected{% endif %}>Año</option>
+        <option value="custom" {% if request.form.get('period') == 'custom' %}selected{% endif %}>Personalizado</option>
+    </select>
+
+    <div id="custom_date_range" style="display: {% if request.form.get('period') == 'custom' %}flex{% else %}none{% endif %}; flex-direction: row; align-items: center; margin-top: 10px;">
+        <div>
+            <label for="start_date">Fecha de Inicio:</label>
+            <input type="date" id="start_date" name="start_date" value="{{ request.form.get('start_date') }}">
+        </div>
+        <div style="margin-left: 15px;">
+            <label for="end_date">Fecha de Fin:</label>
+            <input type="date" id="end_date" name="end_date" value="{{ request.form.get('end_date') }}">
+        </div>
+    </div>
+    <button type="submit" style="margin-top: 10px;">Filtrar</button>
+</form>
+
+<h3>Ventas Realizadas</h3>
+<p>Total de Ventas: ${{ total_sales_day }}</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Producto</th>
+            <th>Cantidad Vendida</th>
+            <th>Fecha</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for sale in sales %}
+        <tr>
+            <td>{{ sale.id }}</td>
+            <td>{{ sale.producto.nombre }}</td>
+            <td>{{ sale.cantidad }}</td>
+            <td>{{ sale.fecha.strftime('%Y-%m-%d') }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+<script src="{{ url_for('static', filename='js/reports.js') }}"></script>
