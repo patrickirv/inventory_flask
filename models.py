@@ -1,42 +1,39 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
-from sqlalchemy.orm import relationship
+from database import db
 from datetime import datetime
-from sqlalchemy.ext.declarative import declarative_base
+import pytz
+# Usa `db` de Flask-SQLAlchemy en lugar de `declarative_base`
+LOCAL_TIMEZONE = pytz.timezone("America/Lima")
 
-Base = declarative_base()
-
-class Product(Base):
+class Product(db.Model):
     __tablename__ = 'productos'
 
-    id = Column(Integer, primary_key=True)
-    nombre = Column(String, nullable=False)
-    categoria = Column(String, nullable=False)
-    precio = Column(Float, nullable=False)
-    cantidad = Column(Integer, nullable=False)
-    fecha_ingreso = Column(String, nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String, nullable=False)
+    categoria = db.Column(db.String, nullable=False)
+    precio = db.Column(db.Float, nullable=False)
+    cantidad = db.Column(db.Integer, nullable=False)
+    fecha_ingreso = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    ventas = db.relationship('Sale', back_populates='producto')
 
     def __init__(self, nombre, categoria, precio, cantidad):
         self.nombre = nombre
         self.categoria = categoria
         self.precio = precio
         self.cantidad = cantidad
-        self.fecha_ingreso = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
-class Sale(Base):
+class Sale(db.Model):
     __tablename__ = 'ventas'
 
-    id = Column(Integer, primary_key=True)
-    producto_id = Column(Integer, ForeignKey('productos.id'), nullable=False)
-    cantidad = Column(Integer, nullable=False)
-    fecha = Column(DateTime, default=datetime.now)
+    id = db.Column(db.Integer, primary_key=True)
+    producto_id = db.Column(db.Integer, db.ForeignKey('productos.id'), nullable=False)
+    cantidad = db.Column(db.Integer, nullable=False)
+    fecha = db.Column(db.DateTime, default=lambda: datetime.now(LOCAL_TIMEZONE))
 
-    producto = relationship('Product', back_populates="ventas")
+    producto = db.relationship('Product', back_populates="ventas")
 
-    def __init__(self, producto_id, cantidad):
+    def __init__(self, producto_id, cantidad, fecha=None):
         self.producto_id = producto_id
         self.cantidad = cantidad
-
-
-# Relación en la clase Product
-Product.ventas = relationship('Sale', back_populates='producto')
+        self.fecha = fecha or datetime.now(LOCAL_TIMEZONE)

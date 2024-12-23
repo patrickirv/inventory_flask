@@ -1,20 +1,10 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
-import models  # Asegúrate de importar modelos
-from models import Product, Sale  # Importa la nueva clase Sale
+from flask_sqlalchemy import SQLAlchemy
 
-DATABASE_PATH = 'C:/Users/Administrator/Desktop/soft sqlite/productos.db'
+# Inicialización de la base de datos con Flask-SQLAlchemy
+db = SQLAlchemy()
 
-engine = create_engine(f'sqlite:///{DATABASE_PATH}')
-db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
-
-Base = declarative_base()
-Base.query = db_session.query_property()
-
-# Crear la base de datos
-def init_db():
-    Base.metadata.create_all(bind=engine)
-
-def get_db():
-    return db_session
+def init_db(app):
+    # Configura la base de datos con la URI y las configuraciones de Flask
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C:/Users/Administrator/Desktop/soft sqlite/productos.db'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    db.init_app(app)

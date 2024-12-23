@@ -106,7 +106,7 @@ blockquote, dl, dd, h1, h2, h3, h4, h5, h6, hr, figure, p, pre {
 .critical-badge {
     padding: 0.5rem 1rem;
     font-size: 0.875rem;
-    color: #7f1d1d; /* rojo oscuro */
+    color: #7f1d1d; 
     background-color: #fecaca; /* rojo claro */
     border-radius: 9999px;
 }
