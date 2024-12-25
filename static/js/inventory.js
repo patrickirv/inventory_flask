@@ -111,15 +111,16 @@ $('#confirmarVentaBtn').click(function(event) {
     event.preventDefault();  // Evitar que el formulario se envíe automáticamente
 
     if (Object.keys(cart).length > 0) {
-        // Preparar los datos de la venta con solo name, precio, cantidad y el id del producto
+        // Preparar los datos de la venta con los campos correctos de la base de datos
         const saleData = {
             productos: Object.keys(cart).map(productId => {
                 const producto = cart[productId];
                 return {
                     id: productId,  // Asegúrate de enviar el ID del producto
-                    name: producto.name,
-                    precio: producto.price,
-                    cantidad: producto.qty
+                    codigo: producto.codigo,  // Añadir el código del producto
+                    nombre: producto.name,  // Cambiar 'name' a 'nombre'
+                    precio: producto.price,  // Cambiar 'price' a 'precio'
+                    cantidad: producto.qty  // Cambiar 'qty' a 'cantidad'
                 };
             })
         };

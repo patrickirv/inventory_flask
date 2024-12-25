@@ -7,7 +7,8 @@
 <table class="table">
     <thead>
         <tr>
-            <th>ID</th>
+            <!--<th>ID</th> -->
+            <th>Codigo</th>
             <th>Nombre</th>
             <th>Cantidad</th>
             <th>Categoría</th>
@@ -16,7 +17,8 @@
     <tbody>
         {% for product in low_stock %}
         <tr>
-            <td>{{ product.id }}</td>
+            <!-- <td>{{ product.id }}</td> -->
+            <td>{{ product.codigo }}</td>
             <td>{{ product.nombre }}</td>
             <td>{{ product.cantidad }}</td>
             <td>{{ product.categoria }}</td>
@@ -73,7 +75,8 @@
 <table class="table">
     <thead>
         <tr>
-            <th>ID</th>
+            <!--<th>ID</th> -->
+            <th>Codigo</th>
             <th>Producto</th>
             <th>Cantidad Vendida</th>
             <th>Fecha</th>
@@ -82,7 +85,8 @@
     <tbody>
         {% for sale in sales %}
         <tr>
-            <td>{{ sale.id }}</td>
+            <!--<td>{{ sale.id }}</td> -->
+            <td>{{ sale.producto.codigo }}</td>
             <td>{{ sale.producto.nombre }}</td>
             <td>{{ sale.cantidad }}</td>
             <td>{{ sale.fecha.strftime('%Y-%m-%d') }}</td>

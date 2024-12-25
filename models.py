@@ -8,6 +8,7 @@ class Product(db.Model):
     __tablename__ = 'productos'
 
     id = db.Column(db.Integer, primary_key=True)
+    codigo = db.Column(db.String(6), nullable=False, unique=True)
     nombre = db.Column(db.String, nullable=False)
     categoria = db.Column(db.String, nullable=False)
     precio = db.Column(db.Float, nullable=False)
@@ -15,13 +16,15 @@ class Product(db.Model):
     fecha_ingreso = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     ventas = db.relationship('Sale', back_populates='producto')
-
+    
     def __init__(self, nombre, categoria, precio, cantidad):
         self.nombre = nombre
         self.categoria = categoria
         self.precio = precio
         self.cantidad = cantidad
 
+    def generar_codigo(self):
+        self.codigo = str(self.id).zfill(6)
 
 class Sale(db.Model):
     __tablename__ = 'ventas'

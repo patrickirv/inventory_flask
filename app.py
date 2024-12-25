@@ -1,10 +1,10 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from database import init_db, db
-from ml_utils import recommend_purchases, get_top_selling_category, get_sales_today, get_total_products, get_low_stock_items, get_top_category, get_total_sales, get_critical_low_stock_items
+from ml_utils import recommend_purchases, get_top_selling_category, get_total_products, get_low_stock_items, get_top_category, get_total_sales, get_critical_low_stock_items
 from datetime import datetime, timedelta
 from models import Product, Sale  # Importa tus modelos y la instancia de db
-from datetime import datetime
 from models import LOCAL_TIMEZONE
+
 app = Flask(__name__)
 
 # Inicio
@@ -58,12 +58,14 @@ def products():
             new_product = Product(nombre=nombre, cantidad=cantidad, precio=precio, categoria=categoria)
             db.session.add(new_product)  # Usamos session.add
             db.session.commit()  # Usamos commit() de la sesión
-
+            new_product.generar_codigo()  # Llamamos a generar_codigo después de hacer el commit
+            db.session.commit()  # Guardamos el código generado
         return redirect(url_for('products'))
 
     # Obtener todos los productos para mostrarlos
     products = db.session.query(Product).all()  # Usamos db.session.query
     return render_template('products.html', products=products)
+
 
 @app.route('/reports', methods=['GET', 'POST'])
 def reports():
@@ -75,37 +77,36 @@ def reports():
     sales_today = []
     total_sales_day = 0
 
-    # Si el método es POST, obtenemos las ventas según el período seleccionado
-    if request.method == 'POST':
-        selected_period = request.form['period']
+    # Definir el periodo por defecto como 'today'
+    selected_period = request.form.get('period', 'today')  # Si no se selecciona ningún periodo, el valor predeterminado es 'today'
 
-        # Filtrar ventas según el período seleccionado
-        if selected_period == 'today':
-            sales_today = db.session.query(Sale).filter(Sale.fecha.like(f'{datetime.now().strftime("%Y-%m-%d")}%')).all()
+    # Filtrar ventas según el periodo seleccionado
+    if selected_period == 'today':
+        sales_today = db.session.query(Sale).filter(Sale.fecha.like(f'{datetime.now().strftime("%Y-%m-%d")}%')).all()
 
-        elif selected_period == 'month':
-            start_date = datetime.now() - timedelta(days=30)
-            sales_today = db.session.query(Sale).filter(Sale.fecha >= start_date).all()
+    elif selected_period == 'month':
+        start_date = datetime.now() - timedelta(days=30)
+        sales_today = db.session.query(Sale).filter(Sale.fecha >= start_date).all()
 
-        elif selected_period == '3months':
-            start_date = datetime.now() - timedelta(days=90)
-            sales_today = db.session.query(Sale).filter(Sale.fecha >= start_date).all()
+    elif selected_period == '3months':
+        start_date = datetime.now() - timedelta(days=90)
+        sales_today = db.session.query(Sale).filter(Sale.fecha >= start_date).all()
 
-        elif selected_period == '6months':
-            start_date = datetime.now() - timedelta(days=180)
-            sales_today = db.session.query(Sale).filter(Sale.fecha >= start_date).all()
+    elif selected_period == '6months':
+        start_date = datetime.now() - timedelta(days=180)
+        sales_today = db.session.query(Sale).filter(Sale.fecha >= start_date).all()
 
-        elif selected_period == 'year':
-            start_date = datetime.now() - timedelta(days=365)
-            sales_today = db.session.query(Sale).filter(Sale.fecha >= start_date).all()
+    elif selected_period == 'year':
+        start_date = datetime.now() - timedelta(days=365)
+        sales_today = db.session.query(Sale).filter(Sale.fecha >= start_date).all()
 
-        elif selected_period == 'custom':
-            start_date = request.form['start_date']
-            end_date = request.form['end_date']
-            sales_today = db.session.query(Sale).filter(Sale.fecha >= start_date, Sale.fecha <= end_date).all()
+    elif selected_period == 'custom':
+        start_date = request.form['start_date']
+        end_date = request.form['end_date']
+        sales_today = db.session.query(Sale).filter(Sale.fecha >= start_date, Sale.fecha <= end_date).all()
 
-        # Calcular el total de ventas en el período seleccionado
-        total_sales_day = sum(sale.cantidad * sale.producto.precio for sale in sales_today)
+    # Calcular el total de ventas en el periodo seleccionado
+    total_sales_day = sum(sale.cantidad * sale.producto.precio for sale in sales_today)
 
     # Renderizar el template con los datos obtenidos
     return render_template('reports.html', 
@@ -113,6 +114,7 @@ def reports():
                            top_category=top_category, 
                            sales=sales_today, 
                            total_sales_day=total_sales_day)
+
 
 @app.route('/realizar_venta', methods=['POST'])
 def realizar_venta():

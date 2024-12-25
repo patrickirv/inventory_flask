@@ -16,7 +16,7 @@
     <table class="table table-striped" id="productsTable">
         <thead>
             <tr>
-                <th>ID</th>
+                <th>Codigo</th>
                 <th>Nombre</th>
                 <th>Categoría</th>
                 <th>Precio</th>
@@ -27,10 +27,10 @@
         <tbody>
             {% for product in products %}
             <tr class="product-row">
-                <td>{{ product.id }}</td>
+                <td>{{ product.codigo }}</td>
                 <td>{{ product.nombre }}</td>
                 <td>{{ product.categoria }}</td>
-                <td>S/.{{ product.precio }}</td>
+                <td>S/. {{ product.precio }}</td>
                 <td>{{ product.cantidad }}</td>
                 <td>
                     <!-- Botón editar producto -->
